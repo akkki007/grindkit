@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -194,14 +194,25 @@ export const useTimerStore = create<TimerState>()(
 
 const getSsrNow = () => 0;
 
-function useTicker(enabledFn: () => boolean, ms = 500): number {
+/**
+ * Ticks every `ms` while enabled. Caches the timestamp in a ref so the
+ * getSnapshot identity stays stable between notifies (otherwise React
+ * thinks the store keeps changing and re-renders infinitely).
+ */
+function useTicker(enabled: boolean, ms = 500): number {
+  const snapshotRef = useRef(0);
   return useSyncExternalStore(
     (notify) => {
-      if (!enabledFn()) return () => {};
-      const id = window.setInterval(notify, ms);
+      if (!enabled) return () => {};
+      snapshotRef.current = Date.now();
+      notify();
+      const id = window.setInterval(() => {
+        snapshotRef.current = Date.now();
+        notify();
+      }, ms);
       return () => window.clearInterval(id);
     },
-    () => Date.now(),
+    () => snapshotRef.current,
     getSsrNow
   );
 }
@@ -218,7 +229,7 @@ export function useRemainingSeconds(): number {
   const mode = useTimerStore((s) => s.mode);
   const tick = useTimerStore((s) => s.tick);
 
-  const now = useTicker(() => running && endsAt !== null);
+  const now = useTicker(running && endsAt !== null);
 
   useEffect(() => {
     if (running && endsAt && now >= endsAt) tick();
