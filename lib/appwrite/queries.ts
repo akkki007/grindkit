@@ -3,6 +3,12 @@ import "server-only";
 import { Query } from "node-appwrite";
 import { createSessionClient } from "./server";
 import { APPWRITE_DATABASE_ID, COLLECTIONS } from "./config";
+import {
+  emptyDay,
+  toDayKey,
+  type DayActivity,
+  type DayKey,
+} from "@/lib/streak/calculator";
 
 export type UserProblemRow = {
   $id: string;
@@ -94,4 +100,102 @@ export async function countSolvedPerPattern(
     }
   }
   return counts;
+}
+
+export type SessionRow = {
+  $id: string;
+  type: "dsa" | "dev" | "learning";
+  durationMin: number;
+  startedAt: string;
+  endedAt: string;
+  problemId?: string | null;
+  projectId?: string | null;
+  taskId?: string | null;
+};
+
+export async function listRecentSessions(
+  userId: string,
+  sinceISO: string
+): Promise<SessionRow[]> {
+  try {
+    const { databases } = await createSessionClient();
+    const res = await databases.listDocuments(
+      APPWRITE_DATABASE_ID,
+      COLLECTIONS.sessions,
+      [
+        Query.equal("userId", userId),
+        Query.greaterThanEqual("startedAt", sinceISO),
+        Query.orderDesc("startedAt"),
+        Query.limit(500),
+      ]
+    );
+    return res.documents as unknown as SessionRow[];
+  } catch {
+    return [];
+  }
+}
+
+export async function buildDailyActivity(
+  userId: string,
+  days = 90,
+  now = new Date()
+): Promise<Map<DayKey, DayActivity>> {
+  const since = new Date(now);
+  since.setDate(since.getDate() - days);
+  const [problems, sessions] = await Promise.all([
+    listUserProblems(userId),
+    listRecentSessions(userId, since.toISOString()),
+  ]);
+
+  const map = new Map<DayKey, DayActivity>();
+  const ensure = (key: DayKey) => {
+    let d = map.get(key);
+    if (!d) {
+      d = emptyDay(key);
+      map.set(key, d);
+    }
+    return d;
+  };
+
+  for (const p of problems) {
+    if (p.status !== "solved") continue;
+    const solved = new Date(p.solvedAt);
+    if (solved < since) continue;
+    const key = toDayKey(solved);
+    ensure(key).problemsSolved += 1;
+  }
+
+  for (const s of sessions) {
+    const startedAt = new Date(s.startedAt);
+    const key = toDayKey(startedAt);
+    const day = ensure(key);
+    if (s.type === "dsa") day.dsaMinutes += s.durationMin;
+    else if (s.type === "dev") day.devMinutes += s.durationMin;
+    else day.learningMinutes += s.durationMin;
+  }
+
+  return map;
+}
+
+export async function listDueReviews(
+  userId: string,
+  limit = 50,
+  now = new Date()
+): Promise<UserProblemRow[]> {
+  try {
+    const { databases } = await createSessionClient();
+    const res = await databases.listDocuments(
+      APPWRITE_DATABASE_ID,
+      COLLECTIONS.problems,
+      [
+        Query.equal("userId", userId),
+        Query.lessThanEqual("nextReviewAt", now.toISOString()),
+        Query.orderAsc("nextReviewAt"),
+        Query.limit(limit),
+      ]
+    );
+    return res.documents as unknown as UserProblemRow[];
+  } catch {
+    return [];
+  }
 }
