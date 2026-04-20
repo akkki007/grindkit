@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { Navbar } from "@/components/nav/navbar";
+import { CommandPalette } from "@/components/library/command-palette";
 import { getCurrentUser } from "@/lib/appwrite/server";
 
 export default async function AppLayout({
@@ -16,6 +17,7 @@ export default async function AppLayout({
         <Navbar userName={user.name || user.email} />
         <main className="pb-16">{children}</main>
       </div>
+      <CommandPalette />
     </div>
   );
 }
