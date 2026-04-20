@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { ProblemForm } from "@/components/problems/problem-form";
+import { LinkTimerButton } from "@/components/timer/link-timer-button";
 import { getCurrentUser } from "@/lib/appwrite/server";
 import { getUserProblem } from "@/lib/appwrite/queries";
 import type { ProblemInput } from "@/actions/problems";
@@ -44,11 +45,14 @@ export default async function EditProblemPage({
         </Link>
       </div>
 
-      <div className="space-y-1">
-        <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-          Edit problem
-        </p>
-        <h1 className="text-2xl font-bold tracking-tight">{doc.title}</h1>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-1">
+          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+            Edit problem
+          </p>
+          <h1 className="text-2xl font-bold tracking-tight">{doc.title}</h1>
+        </div>
+        <LinkTimerButton problemId={id} />
       </div>
 
       <ProblemForm mode="edit" problemId={id} initial={initial} />
