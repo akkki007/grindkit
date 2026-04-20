@@ -287,6 +287,10 @@ async function ensureUsersCollection() {
   await db.createStringAttribute(databaseId, USERS_COLLECTION, "profiles", 4000, false);
   // pushSubscription: JSON blob of the browser's PushSubscription
   await db.createStringAttribute(databaseId, USERS_COLLECTION, "pushSubscription", 2000, false);
+  // notificationPrefs: JSON blob of per-type booleans
+  await db.createStringAttribute(databaseId, USERS_COLLECTION, "notificationPrefs", 1000, false);
+  // timezone IANA string for scheduled notifications
+  await db.createStringAttribute(databaseId, USERS_COLLECTION, "timezone", 64, false);
   await db.createIntegerAttribute(databaseId, USERS_COLLECTION, "currentStreak", false, 0, 100000);
   await db.createIntegerAttribute(databaseId, USERS_COLLECTION, "longestStreak", false, 0, 100000);
   await db.createIntegerAttribute(databaseId, USERS_COLLECTION, "dailyGoalProblems", false, 0, 1000);
