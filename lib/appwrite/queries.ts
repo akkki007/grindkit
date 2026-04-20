@@ -177,6 +177,110 @@ export async function buildDailyActivity(
   return map;
 }
 
+export type ProjectRow = {
+  $id: string;
+  name: string;
+  description?: string;
+  status: "active" | "paused" | "done" | "archived";
+  color?: string;
+  createdAt: string;
+};
+
+export type TaskRow = {
+  $id: string;
+  projectId: string;
+  title: string;
+  status: "backlog" | "in_progress" | "done";
+  estimatedHours?: number | null;
+  actualHours?: number | null;
+  order: number;
+  createdAt: string;
+  completedAt?: string | null;
+};
+
+export async function listUserProjects(userId: string): Promise<ProjectRow[]> {
+  try {
+    const { databases } = await createSessionClient();
+    const res = await databases.listDocuments(
+      APPWRITE_DATABASE_ID,
+      COLLECTIONS.projects,
+      [
+        Query.equal("userId", userId),
+        Query.orderDesc("createdAt"),
+        Query.limit(100),
+      ]
+    );
+    return res.documents as unknown as ProjectRow[];
+  } catch {
+    return [];
+  }
+}
+
+export async function getUserProject(
+  userId: string,
+  id: string
+): Promise<ProjectRow | null> {
+  try {
+    const { databases } = await createSessionClient();
+    const doc = await databases.getDocument(
+      APPWRITE_DATABASE_ID,
+      COLLECTIONS.projects,
+      id
+    );
+    const typed = doc as unknown as ProjectRow & { userId: string };
+    if (typed.userId !== userId) return null;
+    return typed;
+  } catch {
+    return null;
+  }
+}
+
+export async function listProjectTasks(
+  userId: string,
+  projectId: string
+): Promise<TaskRow[]> {
+  try {
+    const { databases } = await createSessionClient();
+    const res = await databases.listDocuments(
+      APPWRITE_DATABASE_ID,
+      COLLECTIONS.tasks,
+      [
+        Query.equal("userId", userId),
+        Query.equal("projectId", projectId),
+        Query.orderAsc("order"),
+        Query.limit(500),
+      ]
+    );
+    return res.documents as unknown as TaskRow[];
+  } catch {
+    return [];
+  }
+}
+
+export async function countTasksPerProject(
+  userId: string
+): Promise<Record<string, { total: number; done: number }>> {
+  try {
+    const { databases } = await createSessionClient();
+    const res = await databases.listDocuments(
+      APPWRITE_DATABASE_ID,
+      COLLECTIONS.tasks,
+      [Query.equal("userId", userId), Query.limit(2000)]
+    );
+    const docs = res.documents as unknown as TaskRow[];
+    const counts: Record<string, { total: number; done: number }> = {};
+    for (const t of docs) {
+      const entry = counts[t.projectId] ?? { total: 0, done: 0 };
+      entry.total += 1;
+      if (t.status === "done") entry.done += 1;
+      counts[t.projectId] = entry;
+    }
+    return counts;
+  } catch {
+    return {};
+  }
+}
+
 export async function listDueReviews(
   userId: string,
   limit = 50,

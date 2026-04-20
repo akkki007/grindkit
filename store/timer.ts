@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -201,18 +201,37 @@ const getSsrNow = () => 0;
  */
 function useTicker(enabled: boolean, ms = 500): number {
   const snapshotRef = useRef(0);
-  return useSyncExternalStore(
-    (notify) => {
+
+  const subscribe = useCallback(
+    (notify: () => void) => {
       if (!enabled) return () => {};
+
       snapshotRef.current = Date.now();
-      notify();
-      const id = window.setInterval(() => {
+
+      // Notify on the next frame to avoid nested updates during subscribe.
+      const rafId = window.requestAnimationFrame(() => {
+        snapshotRef.current = Date.now();
+        notify();
+      });
+
+      const intervalId = window.setInterval(() => {
         snapshotRef.current = Date.now();
         notify();
       }, ms);
-      return () => window.clearInterval(id);
+
+      return () => {
+        window.cancelAnimationFrame(rafId);
+        window.clearInterval(intervalId);
+      };
     },
-    () => snapshotRef.current,
+    [enabled, ms]
+  );
+
+  const getSnapshot = useCallback(() => snapshotRef.current, []);
+
+  return useSyncExternalStore(
+    subscribe,
+    getSnapshot,
     getSsrNow
   );
 }

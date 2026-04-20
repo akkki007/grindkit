@@ -31,6 +31,8 @@ const PATTERNS_COLLECTION = "patterns";
 const LIBRARY_COLLECTION = "problem_library";
 const PROBLEMS_COLLECTION = "problems";
 const SESSIONS_COLLECTION = "sessions";
+const PROJECTS_COLLECTION = "projects";
+const TASKS_COLLECTION = "tasks";
 
 const client = new Client()
   .setEndpoint(endpoint)
@@ -196,6 +198,72 @@ async function ensureSessionsCollection() {
   log(`collection "${SESSIONS_COLLECTION}" created`);
 }
 
+async function ensureProjectsCollection() {
+  try {
+    await db.getCollection(databaseId, PROJECTS_COLLECTION);
+    log(`collection "${PROJECTS_COLLECTION}" exists`);
+    return;
+  } catch {
+    // create below
+  }
+
+  await db.createCollection(
+    databaseId,
+    PROJECTS_COLLECTION,
+    "Projects",
+    [Permission.create(Role.users())],
+    true
+  );
+  await db.createStringAttribute(databaseId, PROJECTS_COLLECTION, "userId", 64, true);
+  await db.createStringAttribute(databaseId, PROJECTS_COLLECTION, "name", 128, true);
+  await db.createStringAttribute(databaseId, PROJECTS_COLLECTION, "description", 1000, false);
+  await db.createStringAttribute(databaseId, PROJECTS_COLLECTION, "status", 16, true);
+  await db.createStringAttribute(databaseId, PROJECTS_COLLECTION, "color", 16, false);
+  await db.createDatetimeAttribute(databaseId, PROJECTS_COLLECTION, "createdAt", true);
+  await waitForAttributes(PROJECTS_COLLECTION, ["userId", "name", "status", "createdAt"]);
+  await db.createIndex(databaseId, PROJECTS_COLLECTION, "user_created_idx", DatabasesIndexType.Key, ["userId", "createdAt"]);
+  await db.createIndex(databaseId, PROJECTS_COLLECTION, "user_status_idx", DatabasesIndexType.Key, ["userId", "status"]);
+  log(`collection "${PROJECTS_COLLECTION}" created`);
+}
+
+async function ensureTasksCollection() {
+  try {
+    await db.getCollection(databaseId, TASKS_COLLECTION);
+    log(`collection "${TASKS_COLLECTION}" exists`);
+    return;
+  } catch {
+    // create below
+  }
+
+  await db.createCollection(
+    databaseId,
+    TASKS_COLLECTION,
+    "Tasks",
+    [Permission.create(Role.users())],
+    true
+  );
+  await db.createStringAttribute(databaseId, TASKS_COLLECTION, "userId", 64, true);
+  await db.createStringAttribute(databaseId, TASKS_COLLECTION, "projectId", 64, true);
+  await db.createStringAttribute(databaseId, TASKS_COLLECTION, "title", 200, true);
+  await db.createStringAttribute(databaseId, TASKS_COLLECTION, "status", 16, true);
+  await db.createFloatAttribute(databaseId, TASKS_COLLECTION, "estimatedHours", false, 0, 1000);
+  await db.createFloatAttribute(databaseId, TASKS_COLLECTION, "actualHours", false, 0, 1000);
+  await db.createIntegerAttribute(databaseId, TASKS_COLLECTION, "order", true, 0, 1000000);
+  await db.createDatetimeAttribute(databaseId, TASKS_COLLECTION, "createdAt", true);
+  await db.createDatetimeAttribute(databaseId, TASKS_COLLECTION, "completedAt", false);
+  await waitForAttributes(TASKS_COLLECTION, [
+    "userId",
+    "projectId",
+    "title",
+    "status",
+    "order",
+    "createdAt",
+  ]);
+  await db.createIndex(databaseId, TASKS_COLLECTION, "project_order_idx", DatabasesIndexType.Key, ["projectId", "status", "order"]);
+  await db.createIndex(databaseId, TASKS_COLLECTION, "user_tasks_idx", DatabasesIndexType.Key, ["userId", "projectId"]);
+  log(`collection "${TASKS_COLLECTION}" created`);
+}
+
 async function waitForAttributes(collectionId: string, keys: string[]) {
   for (let attempt = 0; attempt < 30; attempt++) {
     const res = await db.listAttributes(databaseId, collectionId);
@@ -298,6 +366,8 @@ function log(msg: string) {
     await ensureLibraryCollection();
     await ensureProblemsCollection();
     await ensureSessionsCollection();
+    await ensureProjectsCollection();
+    await ensureTasksCollection();
     await seedPatterns();
     await seedLibrary();
     log("done.");
