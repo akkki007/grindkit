@@ -41,15 +41,8 @@ export function TimerScreen() {
   const pause = useTimerStore((s) => s.pause);
   const resume = useTimerStore((s) => s.resume);
   const reset = useTimerStore((s) => s.reset);
-  const tick = useTimerStore((s) => s.tick);
   const stopAndDrain = useTimerStore((s) => s.stopAndDrain);
   const remaining = useRemainingSeconds();
-
-  useEffect(() => {
-    if (!running) return;
-    const id = window.setInterval(() => tick(), 500);
-    return () => window.clearInterval(id);
-  }, [running, tick]);
 
   useEffect(() => {
     if (running) sessionStartRef.current = Date.now();

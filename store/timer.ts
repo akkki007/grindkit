@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -191,11 +192,45 @@ export const useTimerStore = create<TimerState>()(
   )
 );
 
+const getSsrNow = () => 0;
+
+function useTicker(enabledFn: () => boolean, ms = 500): number {
+  return useSyncExternalStore(
+    (notify) => {
+      if (!enabledFn()) return () => {};
+      const id = window.setInterval(notify, ms);
+      return () => window.clearInterval(id);
+    },
+    () => Date.now(),
+    getSsrNow
+  );
+}
+
+/**
+ * Subscribes to the Zustand store + a 500ms ticker so the rendered
+ * remaining seconds actually advance each frame while the timer runs.
+ * Also calls tick() once the deadline passes so the store transitions.
+ */
 export function useRemainingSeconds(): number {
-  return useTimerStore((s) => {
-    if (s.running && s.endsAt) {
-      return Math.max(0, Math.round((s.endsAt - Date.now()) / 1000));
-    }
-    return s.pausedRemainingSec ?? TIMER_DURATIONS[s.mode];
-  });
+  const running = useTimerStore((s) => s.running);
+  const endsAt = useTimerStore((s) => s.endsAt);
+  const pausedRemainingSec = useTimerStore((s) => s.pausedRemainingSec);
+  const mode = useTimerStore((s) => s.mode);
+  const tick = useTimerStore((s) => s.tick);
+
+  const now = useTicker(() => running && endsAt !== null);
+
+  useEffect(() => {
+    if (running && endsAt && now >= endsAt) tick();
+  }, [running, endsAt, now, tick]);
+
+  if (running && endsAt && now > 0) {
+    return Math.max(0, Math.round((endsAt - now) / 1000));
+  }
+  if (running && endsAt) {
+    // First render before the ticker has produced a value — fall back to
+    // the mode's full duration briefly; next frame will show the live count.
+    return TIMER_DURATIONS[mode];
+  }
+  return pausedRemainingSec ?? TIMER_DURATIONS[mode];
 }
