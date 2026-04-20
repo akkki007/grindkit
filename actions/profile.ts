@@ -29,6 +29,7 @@ export async function getUserProfile(): Promise<{
   profiles: Profiles;
   dailyGoalProblems?: number;
   dailyGoalMinutes?: number;
+  hasPushSubscription: boolean;
 } | null> {
   try {
     const { account, databases } = await createSessionClient();
@@ -39,11 +40,12 @@ export async function getUserProfile(): Promise<{
       [Query.equal("userId", me.$id), Query.limit(1)]
     );
     if (res.total === 0) {
-      return { userId: me.$id, profiles: {} };
+      return { userId: me.$id, profiles: {}, hasPushSubscription: false };
     }
     const doc = res.documents[0] as unknown as {
       userId: string;
       profiles?: string;
+      pushSubscription?: string | null;
       dailyGoalProblems?: number;
       dailyGoalMinutes?: number;
     };
@@ -60,6 +62,7 @@ export async function getUserProfile(): Promise<{
       profiles,
       dailyGoalProblems: doc.dailyGoalProblems,
       dailyGoalMinutes: doc.dailyGoalMinutes,
+      hasPushSubscription: Boolean(doc.pushSubscription),
     };
   } catch {
     return null;

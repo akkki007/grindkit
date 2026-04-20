@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Navbar } from "@/components/nav/navbar";
 import { CommandPalette } from "@/components/library/command-palette";
 import { TimerWidget } from "@/components/timer/timer-widget";
+import { RegisterServiceWorker } from "@/components/pwa/register-sw";
 import { getCurrentUser } from "@/lib/appwrite/server";
 import { getUserProfile } from "@/actions/profile";
 
@@ -25,6 +26,7 @@ export default async function AppLayout({
       </div>
       <CommandPalette />
       <TimerWidget />
+      <RegisterServiceWorker />
     </div>
   );
 }

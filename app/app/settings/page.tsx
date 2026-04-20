@@ -1,8 +1,10 @@
 import { ProfilesForm } from "@/components/settings/profiles-form";
+import { PushControls } from "@/components/notifications/push-controls";
 import { getUserProfile } from "@/actions/profile";
 
 export default async function SettingsPage() {
   const profile = await getUserProfile();
+  const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? null;
 
   return (
     <section className="px-6 py-4 space-y-10">
@@ -23,6 +25,21 @@ export default async function SettingsPage() {
           </p>
         </div>
         <ProfilesForm initial={profile?.profiles ?? {}} />
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <h2 className="font-display text-lg font-semibold tracking-tight">
+            Notifications
+          </h2>
+          <p className="font-mono text-sm text-muted-foreground">
+            Streak reminders, revise-queue nudges, and Pomodoro session-end pings.
+          </p>
+        </div>
+        <PushControls
+          hasSavedSubscription={profile?.hasPushSubscription ?? false}
+          vapidPublicKey={vapidPublicKey}
+        />
       </div>
     </section>
   );

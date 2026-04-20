@@ -285,6 +285,8 @@ async function ensureUsersCollection() {
   await db.createStringAttribute(databaseId, USERS_COLLECTION, "name", 128, false);
   // profiles: JSON blob storing { leetcode, codeforces, codechef, neetcode, gfg, github, hashnode, linkedin }
   await db.createStringAttribute(databaseId, USERS_COLLECTION, "profiles", 4000, false);
+  // pushSubscription: JSON blob of the browser's PushSubscription
+  await db.createStringAttribute(databaseId, USERS_COLLECTION, "pushSubscription", 2000, false);
   await db.createIntegerAttribute(databaseId, USERS_COLLECTION, "currentStreak", false, 0, 100000);
   await db.createIntegerAttribute(databaseId, USERS_COLLECTION, "longestStreak", false, 0, 100000);
   await db.createIntegerAttribute(databaseId, USERS_COLLECTION, "dailyGoalProblems", false, 0, 1000);

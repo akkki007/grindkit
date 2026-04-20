@@ -26,6 +26,18 @@ const notoSerifJP = Noto_Serif_JP({
 export const metadata: Metadata = {
   title: "GrindKit",
   description: "DSA + Dev Companion — track the daily grind.",
+  applicationName: "GrindKit",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
+};
+
+export const viewport: import("next").Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
 };
 
 export default function RootLayout({
