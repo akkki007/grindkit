@@ -1,13 +1,19 @@
-// GrindKit service worker — minimal offline shell + web push.
+// GrindKit service worker — push + conservative static cache.
+//
+// We intentionally DO NOT cache authed pages or API responses. Caching
+// those on a shared device would mean a second user lands on the first
+// user's rendered HTML. Only bundles/icons/manifest get cached so the
+// shell still loads when offline.
 
-const CACHE = "grindkit-v1";
-const PRECACHE = ["/", "/app", "/icon.svg", "/manifest.webmanifest"];
+const CACHE = "grindkit-static-v2";
+
+const STATIC_PRECACHE = ["/icon.svg", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE).then((cache) =>
-      cache.addAll(PRECACHE).catch(() => {
-        // best-effort: ignore failures so install doesn't block
+      cache.addAll(STATIC_PRECACHE).catch(() => {
+        // best-effort
       })
     )
   );
@@ -23,21 +29,32 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Network-first, fall back to cache — keeps freshness for authed pages
-// but provides an offline shell if the network is gone.
+function isCacheableStatic(url) {
+  if (!url.origin.startsWith(self.location.origin)) return false;
+  const p = url.pathname;
+  return (
+    p.startsWith("/_next/static/") ||
+    p === "/icon.svg" ||
+    p === "/manifest.webmanifest" ||
+    p === "/favicon.ico"
+  );
+}
+
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
-  if (!req.url.startsWith(self.location.origin)) return;
+  const url = new URL(req.url);
+  if (!isCacheableStatic(url)) return; // let network handle authed HTML / API
 
   event.respondWith(
-    fetch(req)
-      .then((res) => {
+    caches.match(req).then((cached) => {
+      if (cached) return cached;
+      return fetch(req).then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((cache) => cache.put(req, copy)).catch(() => {});
         return res;
-      })
-      .catch(() => caches.match(req).then((cached) => cached || Response.error()))
+      });
+    })
   );
 });
 

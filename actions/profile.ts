@@ -6,8 +6,8 @@ import { z } from "zod";
 import { createSessionClient } from "@/lib/appwrite/server";
 import { APPWRITE_DATABASE_ID, COLLECTIONS } from "@/lib/appwrite/config";
 import { PROFILE_KEYS, type Profiles } from "@/lib/data/profiles";
+import { httpUrlOrEmpty as urlOrEmpty } from "@/lib/validators";
 
-const urlOrEmpty = z.string().trim().url().or(z.literal("")).optional();
 const profilesSchema = z.object({
   leetcode: urlOrEmpty,
   neetcode: urlOrEmpty,

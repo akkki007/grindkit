@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { ID, Permission, Role } from "node-appwrite";
+import { ID, Permission, Query, Role } from "node-appwrite";
 import { z } from "zod";
 import { createSessionClient } from "@/lib/appwrite/server";
 import { APPWRITE_DATABASE_ID, COLLECTIONS } from "@/lib/appwrite/config";
@@ -68,7 +68,16 @@ export async function updateProjectAction(
   }
   const data = parsed.data;
   try {
-    const { databases } = await createSessionClient();
+    const { account, databases } = await createSessionClient();
+    const me = await account.get();
+    const existing = await databases.getDocument(
+      APPWRITE_DATABASE_ID,
+      COLLECTIONS.projects,
+      id
+    );
+    if ((existing as unknown as { userId: string }).userId !== me.$id) {
+      return { ok: false, error: "Not found" };
+    }
     await databases.updateDocument(
       APPWRITE_DATABASE_ID,
       COLLECTIONS.projects,
@@ -91,26 +100,35 @@ export async function updateProjectAction(
 
 export async function deleteProjectAction(id: string) {
   try {
-    const { databases } = await createSessionClient();
-    // Best-effort: remove tasks first
+    const { account, databases } = await createSessionClient();
+    const me = await account.get();
+    const existing = await databases.getDocument(
+      APPWRITE_DATABASE_ID,
+      COLLECTIONS.projects,
+      id
+    );
+    if ((existing as unknown as { userId: string }).userId !== me.$id) {
+      redirect("/app/projects");
+    }
+    // Scope task cleanup to this user + project
     try {
       const tasks = await databases.listDocuments(
         APPWRITE_DATABASE_ID,
         COLLECTIONS.tasks,
-        []
+        [
+          Query.equal("userId", me.$id),
+          Query.equal("projectId", id),
+          Query.limit(1000),
+        ]
       );
       await Promise.all(
-        tasks.documents
-          .filter(
-            (t) => (t as unknown as { projectId: string }).projectId === id
+        tasks.documents.map((t) =>
+          databases.deleteDocument(
+            APPWRITE_DATABASE_ID,
+            COLLECTIONS.tasks,
+            t.$id
           )
-          .map((t) =>
-            databases.deleteDocument(
-              APPWRITE_DATABASE_ID,
-              COLLECTIONS.tasks,
-              t.$id
-            )
-          )
+        )
       );
     } catch {
       // ignore

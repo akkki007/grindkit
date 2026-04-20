@@ -54,3 +54,30 @@ export async function getCurrentUser() {
     return null;
   }
 }
+
+/**
+ * Fetches a document and verifies it belongs to the caller. Returns null
+ * when there's no session, the doc doesn't exist, or it's owned by
+ * someone else — so mutation actions can short-circuit with a generic
+ * "Not found" instead of attempting a write and leaking existence.
+ */
+export async function getOwnedDocument<T extends { userId?: string }>(
+  collectionId: string,
+  documentId: string
+): Promise<T | null> {
+  const { APPWRITE_DATABASE_ID } = await import("./config");
+  try {
+    const { account, databases } = await createSessionClient();
+    const me = await account.get();
+    const doc = await databases.getDocument(
+      APPWRITE_DATABASE_ID,
+      collectionId,
+      documentId
+    );
+    const typed = doc as unknown as T;
+    if (typed.userId && typed.userId !== me.$id) return null;
+    return typed;
+  } catch {
+    return null;
+  }
+}

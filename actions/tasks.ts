@@ -94,7 +94,16 @@ export async function moveTaskAction(
   const { taskId, toStatus, toOrder, projectId } = parsed.data;
 
   try {
-    const { databases } = await createSessionClient();
+    const { account, databases } = await createSessionClient();
+    const me = await account.get();
+    const existing = await databases.getDocument(
+      APPWRITE_DATABASE_ID,
+      COLLECTIONS.tasks,
+      taskId
+    );
+    if ((existing as unknown as { userId: string }).userId !== me.$id) {
+      return { ok: false, error: "Not found" };
+    }
     const payload: Record<string, unknown> = {
       status: toStatus,
       order: toOrder,
@@ -123,7 +132,16 @@ export async function updateTaskAction(
   updates: Partial<{ title: string; estimatedHours: number | null }>
 ): Promise<ActionResult> {
   try {
-    const { databases } = await createSessionClient();
+    const { account, databases } = await createSessionClient();
+    const me = await account.get();
+    const existing = await databases.getDocument(
+      APPWRITE_DATABASE_ID,
+      COLLECTIONS.tasks,
+      id
+    );
+    if ((existing as unknown as { userId: string }).userId !== me.$id) {
+      return { ok: false, error: "Not found" };
+    }
     const payload: Record<string, unknown> = {};
     if (typeof updates.title === "string") payload.title = updates.title;
     if (updates.estimatedHours !== undefined)
@@ -144,8 +162,20 @@ export async function updateTaskAction(
 
 export async function deleteTaskAction(id: string, projectId: string) {
   try {
-    const { databases } = await createSessionClient();
-    await databases.deleteDocument(APPWRITE_DATABASE_ID, COLLECTIONS.tasks, id);
+    const { account, databases } = await createSessionClient();
+    const me = await account.get();
+    const existing = await databases.getDocument(
+      APPWRITE_DATABASE_ID,
+      COLLECTIONS.tasks,
+      id
+    );
+    if ((existing as unknown as { userId: string }).userId === me.$id) {
+      await databases.deleteDocument(
+        APPWRITE_DATABASE_ID,
+        COLLECTIONS.tasks,
+        id
+      );
+    }
   } catch {
     // ignore
   }

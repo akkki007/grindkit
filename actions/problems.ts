@@ -12,11 +12,12 @@ import {
   problemStatusEnum,
 } from "@/lib/appwrite/schemas";
 import { initialSRS, applyReview, type SRSState } from "@/lib/srs/sm2";
+import { httpUrlOrEmpty } from "@/lib/validators";
 
 const problemInputSchema = z.object({
   libraryId: z.string().optional().nullable(),
   title: z.string().min(1).max(200),
-  url: z.string().url().optional().or(z.literal("")),
+  url: httpUrlOrEmpty,
   platform: platformEnum,
   difficulty: difficultyEnum,
   patternId: z.string().min(1),
@@ -101,7 +102,16 @@ export async function updateProblemAction(
   const data = parsed.data;
 
   try {
-    const { databases } = await createSessionClient();
+    const { account, databases } = await createSessionClient();
+    const me = await account.get();
+    const existing = await databases.getDocument(
+      APPWRITE_DATABASE_ID,
+      COLLECTIONS.problems,
+      id
+    );
+    if ((existing as unknown as { userId: string }).userId !== me.$id) {
+      return { ok: false, error: "Not found" };
+    }
     await databases.updateDocument(
       APPWRITE_DATABASE_ID,
       COLLECTIONS.problems,
@@ -148,13 +158,20 @@ export async function reviewProblemAction(
   }
 
   try {
-    const { databases } = await createSessionClient();
+    const { account, databases } = await createSessionClient();
+    const me = await account.get();
     const doc = await databases.getDocument(
       APPWRITE_DATABASE_ID,
       COLLECTIONS.problems,
       id
     );
-    const prev = doc as unknown as Partial<SRSState> & { patternId: string };
+    const prev = doc as unknown as Partial<SRSState> & {
+      patternId: string;
+      userId?: string;
+    };
+    if (prev.userId !== me.$id) {
+      return { ok: false, error: "Not found" };
+    }
     const next = applyReview(
       prev,
       parsed.data.confidence as 1 | 2 | 3 | 4 | 5
@@ -188,12 +205,20 @@ export async function reviewProblemAction(
 
 export async function deleteProblemAction(id: string, patternSlug?: string) {
   try {
-    const { databases } = await createSessionClient();
-    await databases.deleteDocument(
+    const { account, databases } = await createSessionClient();
+    const me = await account.get();
+    const existing = await databases.getDocument(
       APPWRITE_DATABASE_ID,
       COLLECTIONS.problems,
       id
     );
+    if ((existing as unknown as { userId: string }).userId === me.$id) {
+      await databases.deleteDocument(
+        APPWRITE_DATABASE_ID,
+        COLLECTIONS.problems,
+        id
+      );
+    }
   } catch {
     // ignore
   }

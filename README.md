@@ -1,3 +1,5 @@
+![GrindKit GitHub Banner](./public/grindkitgithub.png)
+
 # GrindKit
 
 A minimalist, single-user command center for tracking the daily grind of
