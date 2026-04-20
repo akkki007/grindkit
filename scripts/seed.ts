@@ -29,6 +29,8 @@ if (!projectId || !apiKey) {
 
 const PATTERNS_COLLECTION = "patterns";
 const LIBRARY_COLLECTION = "problem_library";
+const PROBLEMS_COLLECTION = "problems";
+const SESSIONS_COLLECTION = "sessions";
 
 const client = new Client()
   .setEndpoint(endpoint)
@@ -108,6 +110,90 @@ async function ensureLibraryCollection() {
   await db.createIndex(databaseId, LIBRARY_COLLECTION, "pattern_idx", DatabasesIndexType.Key, ["patternSlug"]);
   await db.createIndex(databaseId, LIBRARY_COLLECTION, "difficulty_idx", DatabasesIndexType.Key, ["difficulty"]);
   log(`collection "${LIBRARY_COLLECTION}" created`);
+}
+
+async function ensureProblemsCollection() {
+  try {
+    await db.getCollection(databaseId, PROBLEMS_COLLECTION);
+    log(`collection "${PROBLEMS_COLLECTION}" exists`);
+    return;
+  } catch {
+    // create below
+  }
+
+  await db.createCollection(
+    databaseId,
+    PROBLEMS_COLLECTION,
+    "Problems",
+    [Permission.create(Role.users())],
+    true
+  );
+  await db.createStringAttribute(databaseId, PROBLEMS_COLLECTION, "userId", 64, true);
+  await db.createStringAttribute(databaseId, PROBLEMS_COLLECTION, "libraryId", 128, false);
+  await db.createStringAttribute(databaseId, PROBLEMS_COLLECTION, "title", 256, true);
+  await db.createStringAttribute(databaseId, PROBLEMS_COLLECTION, "url", 512, false);
+  await db.createStringAttribute(databaseId, PROBLEMS_COLLECTION, "platform", 32, true);
+  await db.createStringAttribute(databaseId, PROBLEMS_COLLECTION, "difficulty", 16, true);
+  await db.createStringAttribute(databaseId, PROBLEMS_COLLECTION, "patternId", 64, true);
+  await db.createStringAttribute(databaseId, PROBLEMS_COLLECTION, "status", 16, true);
+  await db.createIntegerAttribute(databaseId, PROBLEMS_COLLECTION, "confidence", false, 1, 5);
+  await db.createStringAttribute(databaseId, PROBLEMS_COLLECTION, "code", 20000, false);
+  await db.createStringAttribute(databaseId, PROBLEMS_COLLECTION, "notes", 20000, false);
+  await db.createIntegerAttribute(databaseId, PROBLEMS_COLLECTION, "timeTakenMin", false, 0, 100000);
+  await db.createDatetimeAttribute(databaseId, PROBLEMS_COLLECTION, "solvedAt", true);
+  await db.createDatetimeAttribute(databaseId, PROBLEMS_COLLECTION, "nextReviewAt", false);
+  await db.createIntegerAttribute(databaseId, PROBLEMS_COLLECTION, "reviewCount", false, 0, 10000);
+  await db.createFloatAttribute(databaseId, PROBLEMS_COLLECTION, "easinessFactor", false, 1, 5);
+  await db.createIntegerAttribute(databaseId, PROBLEMS_COLLECTION, "interval", false, 0, 10000);
+  await waitForAttributes(PROBLEMS_COLLECTION, [
+    "userId",
+    "title",
+    "platform",
+    "difficulty",
+    "patternId",
+    "status",
+    "solvedAt",
+  ]);
+  await db.createIndex(databaseId, PROBLEMS_COLLECTION, "user_pattern_idx", DatabasesIndexType.Key, ["userId", "patternId"]);
+  await db.createIndex(databaseId, PROBLEMS_COLLECTION, "user_solved_idx", DatabasesIndexType.Key, ["userId", "solvedAt"]);
+  await db.createIndex(databaseId, PROBLEMS_COLLECTION, "user_review_idx", DatabasesIndexType.Key, ["userId", "nextReviewAt"]);
+  log(`collection "${PROBLEMS_COLLECTION}" created`);
+}
+
+async function ensureSessionsCollection() {
+  try {
+    await db.getCollection(databaseId, SESSIONS_COLLECTION);
+    log(`collection "${SESSIONS_COLLECTION}" exists`);
+    return;
+  } catch {
+    // create below
+  }
+
+  await db.createCollection(
+    databaseId,
+    SESSIONS_COLLECTION,
+    "Sessions",
+    [Permission.create(Role.users())],
+    true
+  );
+  await db.createStringAttribute(databaseId, SESSIONS_COLLECTION, "userId", 64, true);
+  await db.createStringAttribute(databaseId, SESSIONS_COLLECTION, "type", 16, true);
+  await db.createIntegerAttribute(databaseId, SESSIONS_COLLECTION, "durationMin", true, 0, 1440);
+  await db.createDatetimeAttribute(databaseId, SESSIONS_COLLECTION, "startedAt", true);
+  await db.createDatetimeAttribute(databaseId, SESSIONS_COLLECTION, "endedAt", true);
+  await db.createStringAttribute(databaseId, SESSIONS_COLLECTION, "problemId", 64, false);
+  await db.createStringAttribute(databaseId, SESSIONS_COLLECTION, "projectId", 64, false);
+  await db.createStringAttribute(databaseId, SESSIONS_COLLECTION, "taskId", 64, false);
+  await waitForAttributes(SESSIONS_COLLECTION, [
+    "userId",
+    "type",
+    "durationMin",
+    "startedAt",
+    "endedAt",
+  ]);
+  await db.createIndex(databaseId, SESSIONS_COLLECTION, "user_started_idx", DatabasesIndexType.Key, ["userId", "startedAt"]);
+  await db.createIndex(databaseId, SESSIONS_COLLECTION, "user_type_idx", DatabasesIndexType.Key, ["userId", "type"]);
+  log(`collection "${SESSIONS_COLLECTION}" created`);
 }
 
 async function waitForAttributes(collectionId: string, keys: string[]) {
@@ -210,6 +296,8 @@ function log(msg: string) {
     await ensureDatabase();
     await ensurePatternsCollection();
     await ensureLibraryCollection();
+    await ensureProblemsCollection();
+    await ensureSessionsCollection();
     await seedPatterns();
     await seedLibrary();
     log("done.");
