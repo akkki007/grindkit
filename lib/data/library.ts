@@ -206,6 +206,120 @@ const ROWS: Row[] = [
   ["Reverse Integer", "reverse-integer", "medium", "bit-manipulation"],
 ];
 
+// LeetCode Top Interview 150 has ~110 overlap with NeetCode 150 by slug.
+// Tagging the overlap keeps a single source of truth for the union.
+const LC_TOP_150_SLUGS = new Set<string>([
+  "two-sum",
+  "valid-anagram",
+  "group-anagrams",
+  "contains-duplicate",
+  "product-of-array-except-self",
+  "valid-sudoku",
+  "longest-consecutive-sequence",
+  "valid-palindrome",
+  "two-sum-ii-input-array-is-sorted",
+  "3sum",
+  "container-with-most-water",
+  "trapping-rain-water",
+  "best-time-to-buy-and-sell-stock",
+  "longest-substring-without-repeating-characters",
+  "longest-repeating-character-replacement",
+  "minimum-window-substring",
+  "valid-parentheses",
+  "min-stack",
+  "evaluate-reverse-polish-notation",
+  "generate-parentheses",
+  "daily-temperatures",
+  "largest-rectangle-in-histogram",
+  "binary-search",
+  "search-a-2d-matrix",
+  "find-minimum-in-rotated-sorted-array",
+  "search-in-rotated-sorted-array",
+  "median-of-two-sorted-arrays",
+  "reverse-linked-list",
+  "merge-two-sorted-lists",
+  "reorder-list",
+  "remove-nth-node-from-end-of-list",
+  "copy-list-with-random-pointer",
+  "add-two-numbers",
+  "linked-list-cycle",
+  "lru-cache",
+  "merge-k-sorted-lists",
+  "reverse-nodes-in-k-group",
+  "invert-binary-tree",
+  "maximum-depth-of-binary-tree",
+  "balanced-binary-tree",
+  "same-tree",
+  "binary-tree-level-order-traversal",
+  "binary-tree-right-side-view",
+  "validate-binary-search-tree",
+  "kth-smallest-element-in-a-bst",
+  "construct-binary-tree-from-preorder-and-inorder-traversal",
+  "binary-tree-maximum-path-sum",
+  "serialize-and-deserialize-binary-tree",
+  "implement-trie-prefix-tree",
+  "design-add-and-search-words-data-structure",
+  "word-search-ii",
+  "kth-largest-element-in-a-stream",
+  "kth-largest-element-in-an-array",
+  "find-median-from-data-stream",
+  "subsets",
+  "combination-sum",
+  "permutations",
+  "word-search",
+  "palindrome-partitioning",
+  "letter-combinations-of-a-phone-number",
+  "n-queens",
+  "number-of-islands",
+  "clone-graph",
+  "surrounded-regions",
+  "rotting-oranges",
+  "course-schedule",
+  "course-schedule-ii",
+  "word-ladder",
+  "reconstruct-itinerary",
+  "network-delay-time",
+  "cheapest-flights-within-k-stops",
+  "climbing-stairs",
+  "min-cost-climbing-stairs",
+  "house-robber",
+  "house-robber-ii",
+  "longest-palindromic-substring",
+  "palindromic-substrings",
+  "decode-ways",
+  "coin-change",
+  "maximum-product-subarray",
+  "word-break",
+  "longest-increasing-subsequence",
+  "unique-paths",
+  "longest-common-subsequence",
+  "edit-distance",
+  "regular-expression-matching",
+  "maximum-subarray",
+  "jump-game",
+  "jump-game-ii",
+  "gas-station",
+  "insert-interval",
+  "merge-intervals",
+  "non-overlapping-intervals",
+  "meeting-rooms",
+  "meeting-rooms-ii",
+  "rotate-image",
+  "spiral-matrix",
+  "set-matrix-zeroes",
+  "happy-number",
+  "plus-one",
+  "powx-n",
+  "multiply-strings",
+  "single-number",
+  "number-of-1-bits",
+  "counting-bits",
+  "reverse-bits",
+  "missing-number",
+  "sum-of-two-integers",
+  "reverse-integer",
+]);
+
 const BLIND_75_SLUGS = new Set<string>([
   "two-sum",
   "best-time-to-buy-and-sell-stock",
@@ -283,10 +397,11 @@ const BLIND_75_SLUGS = new Set<string>([
   "find-median-from-data-stream",
 ]);
 
-export const LIBRARY: readonly LibraryProblem[] = ROWS.map(
+const NEETCODE_BASE: LibraryProblem[] = ROWS.map(
   ([title, slug, difficulty, patternSlug]) => {
     const sourceLists: SourceList[] = ["neetcode-150"];
     if (BLIND_75_SLUGS.has(slug)) sourceLists.push("blind-75");
+    if (LC_TOP_150_SLUGS.has(slug)) sourceLists.push("lc-top-interview-150");
     return {
       slug,
       title,
@@ -302,6 +417,133 @@ export const LIBRARY: readonly LibraryProblem[] = ROWS.map(
     };
   }
 );
+
+// A curated HackerRank Interview Prep Kit subset with our pattern mapping.
+// Problems that don't exist on LeetCode are sourced directly from HR.
+const HACKERRANK_EXTRAS: LibraryProblem[] = [
+  {
+    slug: "hr-sales-by-match",
+    title: "Sales by Match",
+    difficulty: "easy",
+    patternSlug: "arrays-hashing",
+    platform: "hackerrank",
+    url: "https://www.hackerrank.com/challenges/sock-merchant/problem",
+    platforms: {
+      hackerrank: "https://www.hackerrank.com/challenges/sock-merchant/problem",
+    },
+    sourceLists: ["hackerrank-kit"],
+  },
+  {
+    slug: "hr-two-strings",
+    title: "Two Strings",
+    difficulty: "easy",
+    patternSlug: "arrays-hashing",
+    platform: "hackerrank",
+    url: "https://www.hackerrank.com/challenges/two-strings/problem",
+    platforms: {
+      hackerrank: "https://www.hackerrank.com/challenges/two-strings/problem",
+    },
+    sourceLists: ["hackerrank-kit"],
+  },
+  {
+    slug: "hr-minimum-swaps-2",
+    title: "Minimum Swaps 2",
+    difficulty: "medium",
+    patternSlug: "arrays-hashing",
+    platform: "hackerrank",
+    url: "https://www.hackerrank.com/challenges/minimum-swaps-2/problem",
+    platforms: {
+      hackerrank: "https://www.hackerrank.com/challenges/minimum-swaps-2/problem",
+    },
+    sourceLists: ["hackerrank-kit"],
+  },
+  {
+    slug: "hr-new-year-chaos",
+    title: "New Year Chaos",
+    difficulty: "medium",
+    patternSlug: "greedy",
+    platform: "hackerrank",
+    url: "https://www.hackerrank.com/challenges/new-year-chaos/problem",
+    platforms: {
+      hackerrank: "https://www.hackerrank.com/challenges/new-year-chaos/problem",
+    },
+    sourceLists: ["hackerrank-kit"],
+  },
+  {
+    slug: "hr-fraudulent-activity-notifications",
+    title: "Fraudulent Activity Notifications",
+    difficulty: "medium",
+    patternSlug: "sliding-window",
+    platform: "hackerrank",
+    url: "https://www.hackerrank.com/challenges/fraudulent-activity-notifications/problem",
+    platforms: {
+      hackerrank:
+        "https://www.hackerrank.com/challenges/fraudulent-activity-notifications/problem",
+    },
+    sourceLists: ["hackerrank-kit"],
+  },
+];
+
+// Striver's SDE Sheet rows that aren't already in NeetCode. These are classic
+// interview problems; URLs point to GFG's canonical write-up.
+const STRIVER_EXTRAS: LibraryProblem[] = [
+  {
+    slug: "gfg-stock-span",
+    title: "Stock Span Problem",
+    difficulty: "medium",
+    patternSlug: "stack",
+    platform: "gfg",
+    url: "https://www.geeksforgeeks.org/the-stock-span-problem/",
+    platforms: {
+      gfg: "https://www.geeksforgeeks.org/the-stock-span-problem/",
+      leetcode: "https://leetcode.com/problems/online-stock-span/",
+    },
+    sourceLists: ["striver-sheet"],
+  },
+  {
+    slug: "gfg-rod-cutting",
+    title: "Rod Cutting",
+    difficulty: "medium",
+    patternSlug: "dp-1d",
+    platform: "gfg",
+    url: "https://www.geeksforgeeks.org/cutting-a-rod-dp-13/",
+    platforms: {
+      gfg: "https://www.geeksforgeeks.org/cutting-a-rod-dp-13/",
+    },
+    sourceLists: ["striver-sheet"],
+  },
+  {
+    slug: "gfg-bipartite-graph",
+    title: "Check Bipartite Graph",
+    difficulty: "medium",
+    patternSlug: "graphs",
+    platform: "gfg",
+    url: "https://www.geeksforgeeks.org/bipartite-graph/",
+    platforms: {
+      gfg: "https://www.geeksforgeeks.org/bipartite-graph/",
+      leetcode: "https://leetcode.com/problems/is-graph-bipartite/",
+    },
+    sourceLists: ["striver-sheet"],
+  },
+  {
+    slug: "gfg-floyd-warshall",
+    title: "Floyd-Warshall",
+    difficulty: "medium",
+    patternSlug: "advanced-graphs",
+    platform: "gfg",
+    url: "https://www.geeksforgeeks.org/floyd-warshall-algorithm-dp-16/",
+    platforms: {
+      gfg: "https://www.geeksforgeeks.org/floyd-warshall-algorithm-dp-16/",
+    },
+    sourceLists: ["striver-sheet"],
+  },
+];
+
+export const LIBRARY: readonly LibraryProblem[] = [
+  ...NEETCODE_BASE,
+  ...HACKERRANK_EXTRAS,
+  ...STRIVER_EXTRAS,
+];
 
 export const DIFFICULTY_META: Record<Difficulty, { label: string }> = {
   easy: { label: "Easy" },

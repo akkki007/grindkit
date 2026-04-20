@@ -297,6 +297,27 @@ export async function countTasksPerProject(
   }
 }
 
+export async function analyzeWeakPatterns(
+  userId: string,
+  sampleSize = 10
+): Promise<Array<{ patternId: string; avgConfidence: number; n: number }>> {
+  const problems = await listUserProblems(userId);
+  const byPattern = new Map<string, number[]>();
+  for (const p of problems) {
+    if (typeof p.confidence !== "number") continue;
+    const arr = byPattern.get(p.patternId) ?? [];
+    arr.push(p.confidence);
+    byPattern.set(p.patternId, arr);
+  }
+  const weak: Array<{ patternId: string; avgConfidence: number; n: number }> = [];
+  for (const [patternId, scores] of byPattern) {
+    const slice = scores.slice(0, sampleSize);
+    const avg = slice.reduce((a, b) => a + b, 0) / slice.length;
+    if (avg < 3) weak.push({ patternId, avgConfidence: avg, n: slice.length });
+  }
+  return weak.sort((a, b) => a.avgConfidence - b.avgConfidence);
+}
+
 export async function listDueReviews(
   userId: string,
   limit = 50,
