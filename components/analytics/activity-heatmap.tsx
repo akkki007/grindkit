@@ -19,6 +19,16 @@ export type HeatmapDay = {
   level: 0 | 1 | 2 | 3 | 4;
 };
 
+// Design system §2: blue-400 is the sanctioned accent for contribution
+// graphs. Opacity levels match the /25, /50, /75, /100 pattern.
+// Level 0 (no activity) maps to --muted in each scheme via hex.
+const THEME = {
+  // --muted light = oklch(0.97 0 0) → #F7F7F7
+  light: ["#F7F7F7", "#60A5FA40", "#60A5FA80", "#60A5FABF", "#60A5FA"],
+  // --muted dark ≈ oklch(0.269 0 0) → #2B2B2B
+  dark: ["#2B2B2B", "#60A5FA40", "#60A5FA80", "#60A5FABF", "#60A5FA"],
+};
+
 export function ActivityHeatmap({ days }: { days: HeatmapDay[] }) {
   const hydrated = useHydrated();
 
@@ -35,7 +45,7 @@ export function ActivityHeatmap({ days }: { days: HeatmapDay[] }) {
   }
 
   return (
-    <div className="overflow-x-auto overflow-y-hidden">
+    <div className="overflow-x-auto overflow-y-hidden text-muted-foreground">
       <ActivityCalendar
         data={days}
         blockSize={12}
@@ -46,10 +56,7 @@ export function ActivityHeatmap({ days }: { days: HeatmapDay[] }) {
         labels={{
           legend: { less: "Less", more: "More" },
         }}
-        theme={{
-          light: ["oklch(0.97 0 0)", "#93c5fd", "#60a5fa", "#3b82f6", "#1d4ed8"],
-          dark: ["oklch(0.269 0 0)", "#93c5fd40", "#60a5fa80", "#3b82f6c0", "#60a5fa"],
-        }}
+        theme={THEME}
       />
     </div>
   );

@@ -40,14 +40,14 @@ export function PatternDistributionChart({ rows }: { rows: PatternRow[] }) {
           margin={{ top: 4, right: 30, left: 8, bottom: 0 }}
         >
           <CartesianGrid
-            stroke="oklch(var(--border))"
-            strokeOpacity={0.3}
+            stroke="var(--border)"
+            strokeOpacity={0.5}
             horizontal={false}
           />
           <XAxis
             type="number"
             domain={[0, "dataMax"]}
-            stroke="oklch(var(--muted-foreground))"
+            stroke="var(--muted-foreground)"
             fontSize={10}
             fontFamily="var(--font-mono)"
             tickLine={false}
@@ -56,7 +56,7 @@ export function PatternDistributionChart({ rows }: { rows: PatternRow[] }) {
           <YAxis
             type="category"
             dataKey="pattern"
-            stroke="oklch(var(--muted-foreground))"
+            stroke="var(--muted-foreground)"
             fontSize={10}
             fontFamily="var(--font-mono)"
             tickLine={false}
@@ -64,14 +64,17 @@ export function PatternDistributionChart({ rows }: { rows: PatternRow[] }) {
             width={120}
           />
           <Tooltip
-            cursor={{ fill: "oklch(var(--muted))", fillOpacity: 0.4 }}
+            cursor={{ fill: "var(--muted)", fillOpacity: 0.5 }}
             contentStyle={{
-              background: "oklch(var(--popover))",
-              border: "1px solid oklch(var(--border))",
+              background: "var(--popover)",
+              color: "var(--popover-foreground)",
+              border: "1px solid var(--border)",
               borderRadius: 8,
               fontSize: 12,
               fontFamily: "var(--font-mono)",
             }}
+            labelStyle={{ color: "var(--foreground)" }}
+            itemStyle={{ color: "var(--foreground)" }}
             formatter={(_value, _name, item) => {
               const row = (item as { payload?: PatternRow & { pct: number } })
                 ?.payload;
@@ -82,17 +85,12 @@ export function PatternDistributionChart({ rows }: { rows: PatternRow[] }) {
               ];
             }}
           />
-          <Bar dataKey="solved" radius={[0, 3, 3, 0]}>
+          <Bar dataKey="solved" radius={[0, 3, 3, 0]} fill="var(--foreground)">
             {data.map((row) => (
               <Cell
                 key={row.pattern}
-                fill={
-                  row.pct >= 80
-                    ? "oklch(var(--foreground))"
-                    : row.pct >= 40
-                      ? "oklch(var(--foreground) / 0.6)"
-                      : "oklch(var(--foreground) / 0.3)"
-                }
+                fill="var(--foreground)"
+                fillOpacity={row.pct >= 80 ? 1 : row.pct >= 40 ? 0.6 : 0.3}
               />
             ))}
           </Bar>

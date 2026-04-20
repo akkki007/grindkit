@@ -40,20 +40,20 @@ export function WeeklyHoursChart({ data }: { data: WeeklyRow[] }) {
           margin={{ top: 6, right: 6, left: -20, bottom: 0 }}
         >
           <CartesianGrid
-            stroke="oklch(var(--border))"
-            strokeOpacity={0.3}
+            stroke="var(--border)"
+            strokeOpacity={0.5}
             vertical={false}
           />
           <XAxis
             dataKey="day"
-            stroke="oklch(var(--muted-foreground))"
+            stroke="var(--muted-foreground)"
             fontSize={10}
             tickLine={false}
             axisLine={false}
             fontFamily="var(--font-mono)"
           />
           <YAxis
-            stroke="oklch(var(--muted-foreground))"
+            stroke="var(--muted-foreground)"
             fontSize={10}
             tickLine={false}
             axisLine={false}
@@ -61,14 +61,17 @@ export function WeeklyHoursChart({ data }: { data: WeeklyRow[] }) {
             tickFormatter={(v: number) => `${v}m`}
           />
           <Tooltip
-            cursor={{ fill: "oklch(var(--muted))", fillOpacity: 0.4 }}
+            cursor={{ fill: "var(--muted)", fillOpacity: 0.5 }}
             contentStyle={{
-              background: "oklch(var(--popover))",
-              border: "1px solid oklch(var(--border))",
+              background: "var(--popover)",
+              color: "var(--popover-foreground)",
+              border: "1px solid var(--border)",
               borderRadius: 8,
               fontSize: 12,
               fontFamily: "var(--font-mono)",
             }}
+            labelStyle={{ color: "var(--foreground)" }}
+            itemStyle={{ color: "var(--foreground)" }}
             formatter={(value, name) => [
               `${Number(value ?? 0)}m`,
               String(name ?? "").toUpperCase(),
@@ -80,16 +83,28 @@ export function WeeklyHoursChart({ data }: { data: WeeklyRow[] }) {
               fontFamily: "var(--font-mono)",
               textTransform: "uppercase",
               letterSpacing: "0.05em",
+              color: "var(--muted-foreground)",
             }}
             iconType="square"
             iconSize={8}
           />
-          <Bar dataKey="dsa" stackId="a" fill="oklch(var(--foreground))" radius={[0, 0, 0, 0]} />
-          <Bar dataKey="dev" stackId="a" fill="oklch(var(--foreground) / 0.5)" />
+          <Bar
+            dataKey="dsa"
+            stackId="a"
+            fill="var(--foreground)"
+            fillOpacity={1}
+          />
+          <Bar
+            dataKey="dev"
+            stackId="a"
+            fill="var(--foreground)"
+            fillOpacity={0.5}
+          />
           <Bar
             dataKey="learning"
             stackId="a"
-            fill="oklch(var(--foreground) / 0.25)"
+            fill="var(--foreground)"
+            fillOpacity={0.25}
             radius={[4, 4, 0, 0]}
           />
         </BarChart>
