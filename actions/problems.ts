@@ -11,7 +11,7 @@ import {
   platformEnum,
   problemStatusEnum,
 } from "@/lib/appwrite/schemas";
-import { initialSRS, applyReview } from "@/lib/srs/sm2";
+import { initialSRS, applyReview, type SRSState } from "@/lib/srs/sm2";
 
 const problemInputSchema = z.object({
   libraryId: z.string().optional().nullable(),
@@ -126,6 +126,62 @@ export async function updateProblemAction(
     return { ok: true, id };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Could not update problem";
+    return { ok: false, error: message };
+  }
+}
+
+const reviewSchema = z.object({
+  confidence: z.coerce.number().int().min(1).max(5),
+});
+
+type ReviewResult =
+  | { ok: true; nextReviewAt: string; interval: number }
+  | { ok: false; error: string };
+
+export async function reviewProblemAction(
+  id: string,
+  confidence: number
+): Promise<ReviewResult> {
+  const parsed = reviewSchema.safeParse({ confidence });
+  if (!parsed.success) {
+    return { ok: false, error: "Invalid confidence" };
+  }
+
+  try {
+    const { databases } = await createSessionClient();
+    const doc = await databases.getDocument(
+      APPWRITE_DATABASE_ID,
+      COLLECTIONS.problems,
+      id
+    );
+    const prev = doc as unknown as Partial<SRSState> & { patternId: string };
+    const next = applyReview(
+      prev,
+      parsed.data.confidence as 1 | 2 | 3 | 4 | 5
+    );
+    await databases.updateDocument(
+      APPWRITE_DATABASE_ID,
+      COLLECTIONS.problems,
+      id,
+      {
+        confidence: parsed.data.confidence,
+        easinessFactor: next.easinessFactor,
+        interval: next.interval,
+        reviewCount: next.reviewCount,
+        nextReviewAt: next.nextReviewAt,
+      }
+    );
+
+    revalidatePath("/app/revise");
+    revalidatePath("/app");
+    revalidatePath(`/app/patterns/${prev.patternId}`);
+    return {
+      ok: true,
+      nextReviewAt: next.nextReviewAt,
+      interval: next.interval,
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Review failed";
     return { ok: false, error: message };
   }
 }
