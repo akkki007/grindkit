@@ -34,6 +34,7 @@ const SESSIONS_COLLECTION = "sessions";
 const PROJECTS_COLLECTION = "projects";
 const TASKS_COLLECTION = "tasks";
 const USERS_COLLECTION = "users";
+const NOTIFICATIONS_LOG_COLLECTION = "notifications_log";
 
 const client = new Client()
   .setEndpoint(endpoint)
@@ -301,6 +302,35 @@ async function ensureUsersCollection() {
   log(`collection "${USERS_COLLECTION}" created`);
 }
 
+async function ensureNotificationsLogCollection() {
+  try {
+    await db.getCollection(databaseId, NOTIFICATIONS_LOG_COLLECTION);
+    log(`collection "${NOTIFICATIONS_LOG_COLLECTION}" exists`);
+    return;
+  } catch {
+    // create below
+  }
+
+  await db.createCollection(
+    databaseId,
+    NOTIFICATIONS_LOG_COLLECTION,
+    "Notifications Log",
+    [],
+    true
+  );
+  await db.createStringAttribute(databaseId, NOTIFICATIONS_LOG_COLLECTION, "userId", 64, true);
+  await db.createStringAttribute(databaseId, NOTIFICATIONS_LOG_COLLECTION, "type", 32, true);
+  await db.createDatetimeAttribute(databaseId, NOTIFICATIONS_LOG_COLLECTION, "sentAt", true);
+  await db.createStringAttribute(databaseId, NOTIFICATIONS_LOG_COLLECTION, "payload", 2000, false);
+  await waitForAttributes(NOTIFICATIONS_LOG_COLLECTION, [
+    "userId",
+    "type",
+    "sentAt",
+  ]);
+  await db.createIndex(databaseId, NOTIFICATIONS_LOG_COLLECTION, "user_type_sent_idx", DatabasesIndexType.Key, ["userId", "type", "sentAt"]);
+  log(`collection "${NOTIFICATIONS_LOG_COLLECTION}" created`);
+}
+
 async function waitForAttributes(collectionId: string, keys: string[]) {
   for (let attempt = 0; attempt < 30; attempt++) {
     const res = await db.listAttributes(databaseId, collectionId);
@@ -406,6 +436,7 @@ function log(msg: string) {
     await ensureProjectsCollection();
     await ensureTasksCollection();
     await ensureUsersCollection();
+    await ensureNotificationsLogCollection();
     await seedPatterns();
     await seedLibrary();
     log("done.");

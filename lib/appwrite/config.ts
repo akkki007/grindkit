@@ -18,3 +18,5 @@ export const COLLECTIONS = {
   dailyLogs: "daily_logs",
   notificationsLog: "notifications_log",
 } as const;
+
+export type CollectionId = (typeof COLLECTIONS)[keyof typeof COLLECTIONS];

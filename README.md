@@ -98,13 +98,30 @@ Every component in `components/` follows the tokens and patterns in
 `docs/design.md`. No hardcoded colors, no new fonts, no motion libraries
 beyond the theme-toggle GSAP hook (not currently active).
 
+## Scheduled notifications
+
+`/api/cron/notifications` runs hourly via Vercel Cron (`vercel.json`). It:
+
+- Scans users with a saved push subscription
+- Computes each user's current local hour from their IANA timezone
+- Fires daily-revision (09:00), streak-reminder (20:00), streak-at-risk
+  (23:00) and weekly-recap (Sun 19:00) pushes based on their prefs
+- Deduplicates against `notifications_log` (3-hour window) so re-runs
+  don't double-send
+
+The route requires `Authorization: Bearer $CRON_SECRET`. Vercel attaches
+this header automatically when the env var is set.
+
 ## Deploy
 
 ```bash
 vercel link
 vercel env add NEXT_PUBLIC_APPWRITE_PROJECT_ID
 vercel env add APPWRITE_API_KEY
-# …repeat for every env var…
+vercel env add NEXT_PUBLIC_VAPID_PUBLIC_KEY
+vercel env add VAPID_PRIVATE_KEY
+vercel env add VAPID_SUBJECT
+vercel env add CRON_SECRET
 vercel deploy --prod
 ```
 
