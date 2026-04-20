@@ -235,6 +235,22 @@ export async function getUserProject(
   }
 }
 
+function toPlainTask(doc: unknown): TaskRow {
+  const d = doc as Record<string, unknown>;
+  return {
+    $id: String(d.$id ?? ""),
+    projectId: String(d.projectId ?? ""),
+    title: String(d.title ?? ""),
+    status: (d.status as TaskRow["status"]) ?? "backlog",
+    estimatedHours:
+      typeof d.estimatedHours === "number" ? d.estimatedHours : null,
+    actualHours: typeof d.actualHours === "number" ? d.actualHours : null,
+    order: typeof d.order === "number" ? d.order : 0,
+    createdAt: String(d.createdAt ?? ""),
+    completedAt: d.completedAt ? String(d.completedAt) : null,
+  };
+}
+
 export async function listProjectTasks(
   userId: string,
   projectId: string
@@ -251,7 +267,7 @@ export async function listProjectTasks(
         Query.limit(500),
       ]
     );
-    return res.documents as unknown as TaskRow[];
+    return res.documents.map(toPlainTask);
   } catch {
     return [];
   }
