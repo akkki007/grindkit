@@ -2,14 +2,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PlatformLinks } from "@/components/library/platform-links";
 import {
   LIBRARY,
   DIFFICULTY_META,
-  PLATFORM_META,
   SOURCE_LIST_META,
   type Difficulty,
   type SourceList,
@@ -127,9 +126,6 @@ export function LibraryBrowser() {
                     {patternMeta ? (
                       <Badge variant="outline">{patternMeta.name}</Badge>
                     ) : null}
-                    <Badge variant="outline">
-                      {PLATFORM_META[problem.platform].label}
-                    </Badge>
                     {problem.sourceLists.map((src) => (
                       <Badge key={src} variant="secondary">
                         {SOURCE_LIST_META[src].short}
@@ -137,16 +133,8 @@ export function LibraryBrowser() {
                     ))}
                   </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <a
-                    href={problem.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 rounded-md border border-input bg-background/50 px-2 py-1 font-mono text-[10px] text-muted-foreground transition-colors hover:bg-background/80 hover:text-foreground"
-                  >
-                    Open
-                    <ExternalLink className="size-3" />
-                  </a>
+                <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                  <PlatformLinks platforms={problem.platforms} size="xs" />
                   <Button asChild size="sm" variant="outline">
                     <Link href={`/app/problems/new?library=${problem.slug}`}>
                       Log

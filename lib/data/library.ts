@@ -1,5 +1,5 @@
 export type Difficulty = "easy" | "medium" | "hard";
-export type Platform = "leetcode" | "neetcode" | "hackerrank" | "gfg" | "codeforces";
+export type Platform = "leetcode" | "neetcode" | "hackerrank" | "gfg" | "codeforces" | "codechef";
 export type SourceList = "neetcode-150" | "blind-75" | "lc-top-interview-150" | "hackerrank-kit" | "striver-sheet";
 
 export type LibraryProblem = {
@@ -9,10 +9,12 @@ export type LibraryProblem = {
   patternSlug: string;
   platform: Platform;
   url: string;
+  platforms: Partial<Record<Platform, string>>;
   sourceLists: SourceList[];
 };
 
 const lc = (slug: string) => `https://leetcode.com/problems/${slug}/`;
+const nc = (slug: string) => `https://neetcode.io/problems/${slug}`;
 
 type Row = [title: string, lcSlug: string, difficulty: Difficulty, patternSlug: string];
 
@@ -292,6 +294,10 @@ export const LIBRARY: readonly LibraryProblem[] = ROWS.map(
       patternSlug,
       platform: "leetcode" as const,
       url: lc(slug),
+      platforms: {
+        leetcode: lc(slug),
+        neetcode: nc(slug),
+      },
       sourceLists,
     };
   }
@@ -303,12 +309,13 @@ export const DIFFICULTY_META: Record<Difficulty, { label: string }> = {
   hard: { label: "Hard" },
 };
 
-export const PLATFORM_META: Record<Platform, { label: string }> = {
-  leetcode: { label: "LeetCode" },
-  neetcode: { label: "NeetCode" },
-  hackerrank: { label: "HackerRank" },
-  gfg: { label: "GFG" },
-  codeforces: { label: "Codeforces" },
+export const PLATFORM_META: Record<Platform, { label: string; short: string }> = {
+  leetcode: { label: "LeetCode", short: "LC" },
+  neetcode: { label: "NeetCode", short: "NC" },
+  hackerrank: { label: "HackerRank", short: "HR" },
+  gfg: { label: "GeeksforGeeks", short: "GFG" },
+  codeforces: { label: "Codeforces", short: "CF" },
+  codechef: { label: "CodeChef", short: "CC" },
 };
 
 export const SOURCE_LIST_META: Record<SourceList, { label: string; short: string }> = {

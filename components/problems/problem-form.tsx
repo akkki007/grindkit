@@ -15,7 +15,7 @@ import { PATTERNS } from "@/lib/data/patterns";
 import { cn } from "@/lib/utils";
 
 const DIFFICULTIES = ["easy", "medium", "hard"] as const;
-const PLATFORMS = ["leetcode", "neetcode", "hackerrank", "gfg", "codeforces", "custom"] as const;
+const PLATFORMS = ["leetcode", "neetcode", "hackerrank", "gfg", "codeforces", "codechef", "custom"] as const;
 const STATUSES = ["solved", "attempted", "revisiting"] as const;
 
 type Mode = "create" | "edit";

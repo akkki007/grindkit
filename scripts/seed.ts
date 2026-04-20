@@ -33,6 +33,7 @@ const PROBLEMS_COLLECTION = "problems";
 const SESSIONS_COLLECTION = "sessions";
 const PROJECTS_COLLECTION = "projects";
 const TASKS_COLLECTION = "tasks";
+const USERS_COLLECTION = "users";
 
 const client = new Client()
   .setEndpoint(endpoint)
@@ -264,6 +265,36 @@ async function ensureTasksCollection() {
   log(`collection "${TASKS_COLLECTION}" created`);
 }
 
+async function ensureUsersCollection() {
+  try {
+    await db.getCollection(databaseId, USERS_COLLECTION);
+    log(`collection "${USERS_COLLECTION}" exists`);
+    return;
+  } catch {
+    // create below
+  }
+
+  await db.createCollection(
+    databaseId,
+    USERS_COLLECTION,
+    "Users",
+    [Permission.create(Role.users())],
+    true
+  );
+  await db.createStringAttribute(databaseId, USERS_COLLECTION, "userId", 64, true);
+  await db.createStringAttribute(databaseId, USERS_COLLECTION, "name", 128, false);
+  // profiles: JSON blob storing { leetcode, codeforces, codechef, neetcode, gfg, github, hashnode, linkedin }
+  await db.createStringAttribute(databaseId, USERS_COLLECTION, "profiles", 4000, false);
+  await db.createIntegerAttribute(databaseId, USERS_COLLECTION, "currentStreak", false, 0, 100000);
+  await db.createIntegerAttribute(databaseId, USERS_COLLECTION, "longestStreak", false, 0, 100000);
+  await db.createIntegerAttribute(databaseId, USERS_COLLECTION, "dailyGoalProblems", false, 0, 1000);
+  await db.createIntegerAttribute(databaseId, USERS_COLLECTION, "dailyGoalMinutes", false, 0, 10000);
+  await db.createDatetimeAttribute(databaseId, USERS_COLLECTION, "joinedAt", true);
+  await waitForAttributes(USERS_COLLECTION, ["userId", "joinedAt"]);
+  await db.createIndex(databaseId, USERS_COLLECTION, "userId_idx", DatabasesIndexType.Unique, ["userId"]);
+  log(`collection "${USERS_COLLECTION}" created`);
+}
+
 async function waitForAttributes(collectionId: string, keys: string[]) {
   for (let attempt = 0; attempt < 30; attempt++) {
     const res = await db.listAttributes(databaseId, collectionId);
@@ -368,6 +399,7 @@ function log(msg: string) {
     await ensureSessionsCollection();
     await ensureProjectsCollection();
     await ensureTasksCollection();
+    await ensureUsersCollection();
     await seedPatterns();
     await seedLibrary();
     log("done.");

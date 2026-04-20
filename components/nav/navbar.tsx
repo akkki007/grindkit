@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ProfilesMenu } from "@/components/nav/profiles-menu";
 import { logoutAction } from "@/actions/auth";
+import type { Profiles } from "@/lib/data/profiles";
 
 const NAV_LINKS = [
   { href: "/app", label: "Home" },
@@ -15,7 +17,13 @@ const NAV_LINKS = [
   { href: "/app/analytics", label: "Analytics" },
 ];
 
-export function Navbar({ userName }: { userName?: string }) {
+export function Navbar({
+  userName,
+  profiles,
+}: {
+  userName?: string;
+  profiles?: Profiles;
+}) {
   const pathname = usePathname();
 
   return (
@@ -63,6 +71,7 @@ export function Navbar({ userName }: { userName?: string }) {
             {userName}
           </span>
         ) : null}
+        <ProfilesMenu profiles={profiles ?? {}} />
         <ThemeToggle />
         <form action={logoutAction}>
           <button

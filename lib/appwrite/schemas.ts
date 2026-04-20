@@ -16,7 +16,7 @@ export type SignupInput = z.infer<typeof signupSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 
 export const difficultyEnum = z.enum(["easy", "medium", "hard"]);
-export const platformEnum = z.enum(["leetcode", "neetcode", "hackerrank", "gfg", "codeforces", "custom"]);
+export const platformEnum = z.enum(["leetcode", "neetcode", "hackerrank", "gfg", "codeforces", "codechef", "custom"]);
 export const phaseEnum = z.enum(["foundation", "core", "advanced"]);
 export const problemStatusEnum = z.enum(["attempted", "solved", "revisiting"]);
 export const sessionTypeEnum = z.enum(["dsa", "dev", "learning"]);
