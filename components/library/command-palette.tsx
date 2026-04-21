@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
 import { ArrowRight, Search } from "lucide-react";
+
+export const OPEN_PALETTE_EVENT = "grindkit:open-command-palette";
 import {
   LIBRARY,
   DIFFICULTY_META,
@@ -34,8 +36,13 @@ export function CommandPalette() {
         setOpen(false);
       }
     };
+    const onOpen = () => setOpen(true);
     document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
+    window.addEventListener(OPEN_PALETTE_EVENT, onOpen);
+    return () => {
+      document.removeEventListener("keydown", down);
+      window.removeEventListener(OPEN_PALETTE_EVENT, onOpen);
+    };
   }, [open]);
 
   const filtered = useMemo(() => {
@@ -60,22 +67,7 @@ export function CommandPalette() {
     [router]
   );
 
-  if (!open) {
-    return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="fixed bottom-6 left-6 z-40 hidden items-center gap-2 rounded-md border border-border/50 bg-background/80 px-3 py-1.5 font-mono text-[11px] text-muted-foreground shadow-sm backdrop-blur-xs transition-colors hover:text-foreground sm:inline-flex"
-        aria-label="Open command palette"
-      >
-        <Search className="size-3" />
-        <span>Search library</span>
-        <kbd className="ml-2 rounded border border-border/50 bg-muted px-1 font-mono text-[10px]">
-          ⌘K
-        </kbd>
-      </button>
-    );
-  }
+  if (!open) return null;
 
   return (
     <div

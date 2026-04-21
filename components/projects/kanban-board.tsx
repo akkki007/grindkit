@@ -167,7 +167,7 @@ export function KanbanBoard({
 
   return (
     <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {COLUMNS.map((col) => {
           const items = optimisticTasks
             .filter((t) => t.status === col.status)
@@ -299,7 +299,7 @@ function SortableTaskCard({ task }: { task: TaskRow }) {
           <GripVertical className="size-3" />
         </button>
         <div className="min-w-0 flex-1">
-          <p className="break-words font-mono text-xs leading-relaxed">
+          <p className="wrap-break-word font-mono text-xs leading-relaxed">
             {task.title}
           </p>
           {task.estimatedHours ? (

@@ -37,7 +37,7 @@ export function LibraryBrowser() {
   }, [query, difficulty, pattern, source]);
 
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-[200px_1fr]">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[200px_1fr]">
       <aside className="space-y-5">
         <div>
           <Label>Search</Label>
