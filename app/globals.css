@@ -84,6 +84,10 @@
   }
   html {
     font-family: var(--font-mono), ui-monospace, monospace;
+    /* Uniform UI scale. Everything tailwind-sized is rem-based so
+       bumping the root size scales type, spacing, radii, and layout
+       proportionally. */
+    font-size: 120%;
   }
   body {
     background-color: var(--background);
