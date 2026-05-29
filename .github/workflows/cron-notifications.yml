@@ -3,9 +3,9 @@ name: Scheduled notifications
 # Replaces Vercel Cron (hourly is Pro-only / billed there). Hits the same
 # authenticated endpoint. GitHub Actions scheduled runs are free.
 #
-# Required repo config (Settings → Secrets and variables → Actions):
-#   - Secret   CRON_SECRET   — must match the deployment's CRON_SECRET env var
-#   - Variable APP_URL       — deployment origin, e.g. https://grindkit.vercel.app
+# Required repo config (Settings → Secrets and variables → Actions → Secrets):
+#   - Secret  CRON_SECRET  — must match the deployment's CRON_SECRET env var
+#   - Secret  APP_URL      — deployment origin, e.g. https://grindkit.vercel.app
 #
 # Note: scheduled runs may be delayed a few minutes under GitHub load. The
 # endpoint dedupes within a 3-hour window, so re-runs/manual runs are safe.
@@ -21,7 +21,7 @@ jobs:
     steps:
       - name: Trigger notification dispatch
         env:
-          APP_URL: ${{ vars.APP_URL }}
+          APP_URL: ${{ secrets.APP_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
