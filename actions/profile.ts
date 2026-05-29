@@ -41,6 +41,7 @@ export type FullProfile = {
   userId: string;
   email?: string;
   name?: string;
+  emailVerified: boolean;
   profiles: Profiles;
   notificationPrefs: NotificationPrefs;
   dailyGoalProblems: number;
@@ -65,6 +66,7 @@ export async function getUserProfile(): Promise<FullProfile | null> {
         email: me.email,
         name: me.name,
         profiles: {},
+        emailVerified: me.emailVerification,
         notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS },
         dailyGoalProblems: 3,
         dailyGoalMinutes: 60,
@@ -102,6 +104,7 @@ export async function getUserProfile(): Promise<FullProfile | null> {
       userId: doc.userId,
       email: me.email,
       name: me.name,
+      emailVerified: me.emailVerification,
       profiles,
       notificationPrefs: mergePrefs(prefs),
       dailyGoalProblems: doc.dailyGoalProblems ?? 3,

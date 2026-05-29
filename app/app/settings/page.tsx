@@ -2,6 +2,7 @@ import { EmailControls } from "@/components/notifications/email-controls";
 import { GoalsForm } from "@/components/settings/goals-form";
 import { NotificationPrefsForm } from "@/components/settings/notification-prefs-form";
 import { ProfilesForm } from "@/components/settings/profiles-form";
+import { VerifyEmailSection } from "@/components/settings/verify-email-section";
 import { DeleteAccountSection } from "@/components/settings/delete-account-section";
 import { getUserProfile } from "@/actions/profile";
 
@@ -15,12 +16,15 @@ export default async function SettingsPage() {
           Account
         </p>
         <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-        {profile?.email ? (
-          <p className="font-mono text-xs text-muted-foreground">
-            Signed in as {profile.email}
-          </p>
-        ) : null}
       </div>
+
+      <Section title="Email" hint="Verify your address to enable email notifications.">
+        <VerifyEmailSection
+          email={profile?.email ?? ""}
+          name={profile?.name ?? ""}
+          verified={profile?.emailVerified ?? false}
+        />
+      </Section>
 
       <Section
         title="Daily goals"
