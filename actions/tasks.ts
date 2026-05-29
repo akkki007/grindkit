@@ -1,10 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { ID, Permission, Query, Role } from "node-appwrite";
 import { z } from "zod";
 import { createSessionClient } from "@/lib/appwrite/server";
 import { APPWRITE_DATABASE_ID, COLLECTIONS } from "@/lib/appwrite/config";
+import { cacheTags } from "@/lib/appwrite/cache-tags";
 import { taskStatusEnum } from "@/lib/appwrite/schemas";
 
 const taskInputSchema = z.object({
@@ -68,6 +69,7 @@ export async function createTaskAction(
       ]
     );
 
+    updateTag(cacheTags.tasks(me.$id));
     revalidatePath(`/app/projects/${data.projectId}`);
     revalidatePath("/app/projects");
     return { ok: true, id: doc.$id };
@@ -118,6 +120,7 @@ export async function moveTaskAction(
       payload
     );
 
+    updateTag(cacheTags.tasks(me.$id));
     revalidatePath(`/app/projects/${projectId}`);
     return { ok: true, id: taskId };
   } catch (err) {
@@ -152,6 +155,7 @@ export async function updateTaskAction(
       id,
       payload
     );
+    updateTag(cacheTags.tasks(me.$id));
     revalidatePath(`/app/projects/${projectId}`);
     return { ok: true, id };
   } catch (err) {
@@ -175,6 +179,7 @@ export async function deleteTaskAction(id: string, projectId: string) {
         COLLECTIONS.tasks,
         id
       );
+      updateTag(cacheTags.tasks(me.$id));
     }
   } catch {
     // ignore

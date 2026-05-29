@@ -75,7 +75,13 @@ export const useTimerStore = create<TimerState>()(
       start: (opts) => {
         const { mode, pausedRemainingSec } = get();
         const now = Date.now();
-        const remainingSec = pausedRemainingSec ?? TIMER_DURATIONS[mode];
+        // A completed block leaves pausedRemainingSec at 0; treat any
+        // non-positive remainder as "start fresh" so Play never spawns a
+        // timer that has already expired.
+        const remainingSec =
+          pausedRemainingSec && pausedRemainingSec > 0
+            ? pausedRemainingSec
+            : TIMER_DURATIONS[mode];
         set({
           running: true,
           startedAt: now,
@@ -102,7 +108,10 @@ export const useTimerStore = create<TimerState>()(
       resume: () => {
         const { pausedRemainingSec, mode } = get();
         const now = Date.now();
-        const remainingSec = pausedRemainingSec ?? TIMER_DURATIONS[mode];
+        const remainingSec =
+          pausedRemainingSec && pausedRemainingSec > 0
+            ? pausedRemainingSec
+            : TIMER_DURATIONS[mode];
         set({
           running: true,
           startedAt: now,

@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { ArrowRight, Flame, Timer as TimerIcon, BookOpen, Sparkles } from "lucide-react";
+import { ArrowRight, Flame, Timer as TimerIcon, BookOpen, Sparkles, Target } from "lucide-react";
 import { getCurrentUser } from "@/lib/appwrite/server";
 import {
   buildDailyActivity,
   countSolvedPerPattern,
   listDueReviews,
+  getDailyGoals,
+  type DailyGoals,
 } from "@/lib/appwrite/queries";
 import {
   computeStreak,
@@ -19,13 +21,19 @@ export default async function DashboardPage() {
   const firstName = user?.name?.split(" ")[0] ?? "friend";
 
   const now = new Date();
-  const [days, solvedPerPattern, due] = user
+  const [days, solvedPerPattern, due, goals] = user
     ? await Promise.all([
         buildDailyActivity(user.$id, 90, now),
         countSolvedPerPattern(user.$id),
         listDueReviews(user.$id, 20, now),
+        getDailyGoals(user.$id),
       ])
-    : [new Map(), {} as Record<string, number>, []];
+    : [
+        new Map(),
+        {} as Record<string, number>,
+        [],
+        { problems: 3, minutes: 60 } as DailyGoals,
+      ];
 
   const streak = computeStreak(days, now);
   const todayKey = toDayKey(now);
@@ -79,6 +87,12 @@ export default async function DashboardPage() {
         <TodayCard today={today} />
         <DueCard count={due.length} />
       </div>
+
+      <GoalsCard
+        problemsDone={today.problemsSolved}
+        minutesDone={today.dsaMinutes}
+        goals={goals}
+      />
 
       <NextPatternCard
         nextPattern={{
@@ -194,6 +208,90 @@ function TodayCard({
         <Legend label="Dev" minutes={today.devMinutes} swatch="bg-foreground/50" />
         <Legend label="Learn" minutes={today.learningMinutes} swatch="bg-foreground/25" />
       </ul>
+    </div>
+  );
+}
+
+function GoalsCard({
+  problemsDone,
+  minutesDone,
+  goals,
+}: {
+  problemsDone: number;
+  minutesDone: number;
+  goals: DailyGoals;
+}) {
+  const problemsMet = goals.problems === 0 || problemsDone >= goals.problems;
+  const minutesMet = goals.minutes === 0 || minutesDone >= goals.minutes;
+  const allMet = problemsMet && minutesMet;
+
+  return (
+    <div className="rounded-lg border border-border/50 bg-card/50 p-4 shadow-sm space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="flex items-center gap-1.5 font-display text-base font-semibold tracking-tight">
+          <Target className="size-4 text-muted-foreground" />
+          Daily goals
+        </h3>
+        <Link
+          href="/app/settings"
+          className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+        >
+          {allMet ? "Goals met ✓" : "Edit"}
+        </Link>
+      </div>
+
+      <GoalRow
+        label="Problems"
+        done={problemsDone}
+        goal={goals.problems}
+        met={problemsMet}
+        unit=""
+      />
+      <GoalRow
+        label="DSA minutes"
+        done={minutesDone}
+        goal={goals.minutes}
+        met={minutesMet}
+        unit="m"
+      />
+    </div>
+  );
+}
+
+function GoalRow({
+  label,
+  done,
+  goal,
+  met,
+  unit,
+}: {
+  label: string;
+  done: number;
+  goal: number;
+  met: boolean;
+  unit: string;
+}) {
+  const pct = goal > 0 ? Math.min(100, Math.round((done / goal) * 100)) : 100;
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between font-mono text-[11px] tabular-nums">
+        <span className="text-muted-foreground">{label}</span>
+        <span className={met ? "text-foreground" : "text-muted-foreground"}>
+          {done}
+          {unit} / {goal}
+          {unit}
+        </span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+        <div
+          className={
+            met
+              ? "h-full rounded-full bg-foreground transition-all"
+              : "h-full rounded-full bg-foreground/50 transition-all"
+          }
+          style={{ width: `${pct}%` }}
+        />
+      </div>
     </div>
   );
 }

@@ -1,10 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { ID, Permission, Role } from "node-appwrite";
 import { z } from "zod";
 import { createSessionClient } from "@/lib/appwrite/server";
 import { APPWRITE_DATABASE_ID, COLLECTIONS } from "@/lib/appwrite/config";
+import { cacheTags } from "@/lib/appwrite/cache-tags";
 import { sessionTypeEnum } from "@/lib/appwrite/schemas";
 
 const sessionInputSchema = z.object({
@@ -78,6 +79,9 @@ export async function logSessionAction(
       }
     }
 
+    updateTag(cacheTags.sessions(me.$id));
+    // A linked session bumps the problem's logged time, so bust that too.
+    if (data.problemId) updateTag(cacheTags.problems(me.$id));
     revalidatePath("/app");
     revalidatePath("/app/analytics");
     return { ok: true, id: doc.$id };

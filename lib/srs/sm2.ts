@@ -38,7 +38,10 @@ export function applyReview(
     interval = 1;
     easinessFactor = clamp(easinessFactor - 0.2, MIN_EF, MAX_EF);
   } else if (confidence === 3) {
-    interval = Math.max(1, Math.round(interval * 1.2));
+    // "Hard": grow modestly but always advance — round(interval * 1.2)
+    // collapses to the same value for interval 1-2, which would trap a
+    // card at a 1-day interval forever. Floor the growth at +1 day.
+    interval = Math.max(interval + 1, Math.round(interval * 1.2));
   } else {
     interval = Math.max(1, Math.round(interval * easinessFactor));
     easinessFactor = clamp(easinessFactor + 0.1, MIN_EF, MAX_EF);

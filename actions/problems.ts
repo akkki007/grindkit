@@ -1,11 +1,12 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { ID, Permission, Role } from "node-appwrite";
 import { z } from "zod";
 import { createSessionClient } from "@/lib/appwrite/server";
 import { APPWRITE_DATABASE_ID, COLLECTIONS } from "@/lib/appwrite/config";
+import { cacheTags } from "@/lib/appwrite/cache-tags";
 import {
   difficultyEnum,
   platformEnum,
@@ -79,6 +80,7 @@ export async function createProblemAction(
       ]
     );
 
+    updateTag(cacheTags.problems(me.$id));
     revalidatePath("/app/patterns");
     revalidatePath(`/app/patterns/${data.patternId}`);
     revalidatePath("/app");
@@ -130,6 +132,7 @@ export async function updateProblemAction(
       }
     );
 
+    updateTag(cacheTags.problems(me.$id));
     revalidatePath(`/app/problems/${id}`);
     revalidatePath(`/app/patterns/${data.patternId}`);
     revalidatePath("/app/patterns");
@@ -189,6 +192,7 @@ export async function reviewProblemAction(
       }
     );
 
+    updateTag(cacheTags.problems(me.$id));
     revalidatePath("/app/revise");
     revalidatePath("/app");
     revalidatePath(`/app/patterns/${prev.patternId}`);
@@ -218,6 +222,7 @@ export async function deleteProblemAction(id: string, patternSlug?: string) {
         COLLECTIONS.problems,
         id
       );
+      updateTag(cacheTags.problems(me.$id));
     }
   } catch {
     // ignore

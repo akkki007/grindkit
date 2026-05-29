@@ -1,11 +1,12 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { ID, Permission, Query, Role } from "node-appwrite";
 import { z } from "zod";
 import { createSessionClient } from "@/lib/appwrite/server";
 import { APPWRITE_DATABASE_ID, COLLECTIONS } from "@/lib/appwrite/config";
+import { cacheTags } from "@/lib/appwrite/cache-tags";
 import { projectStatusEnum } from "@/lib/appwrite/schemas";
 
 const projectInputSchema = z.object({
@@ -50,6 +51,7 @@ export async function createProjectAction(
       ]
     );
 
+    updateTag(cacheTags.projects(me.$id));
     revalidatePath("/app/projects");
     return { ok: true, id: doc.$id };
   } catch (err) {
@@ -89,6 +91,7 @@ export async function updateProjectAction(
         status: data.status,
       }
     );
+    updateTag(cacheTags.projects(me.$id));
     revalidatePath("/app/projects");
     revalidatePath(`/app/projects/${id}`);
     return { ok: true, id };
@@ -134,6 +137,8 @@ export async function deleteProjectAction(id: string) {
       // ignore
     }
     await databases.deleteDocument(APPWRITE_DATABASE_ID, COLLECTIONS.projects, id);
+    updateTag(cacheTags.projects(me.$id));
+    updateTag(cacheTags.tasks(me.$id));
   } catch {
     // ignore
   }

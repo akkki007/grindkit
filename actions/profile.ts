@@ -1,11 +1,12 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { ID, Permission, Query, Role } from "node-appwrite";
 import { z } from "zod";
 import { createAdminClient, createSessionClient } from "@/lib/appwrite/server";
+import { cacheTags } from "@/lib/appwrite/cache-tags";
 import {
   APPWRITE_DATABASE_ID,
   COLLECTIONS,
@@ -245,6 +246,7 @@ export async function updateGoalsAction(
         timezone: parsed.data.timezone || null,
       }
     );
+    updateTag(cacheTags.user(ref.userId));
     revalidatePath("/app/settings");
     revalidatePath("/app");
     return { ok: true };
