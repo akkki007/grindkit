@@ -100,7 +100,7 @@ beyond the theme-toggle GSAP hook (not currently active).
 
 ## Scheduled notifications
 
-`/api/cron/notifications` runs hourly via Vercel Cron (`vercel.json`). It:
+`/api/cron/notifications` is an authenticated `GET` that:
 
 - Scans users with a saved push subscription
 - Computes each user's current local hour from their IANA timezone
@@ -109,8 +109,18 @@ beyond the theme-toggle GSAP hook (not currently active).
 - Deduplicates against `notifications_log` (3-hour window) so re-runs
   don't double-send
 
-The route requires `Authorization: Bearer $CRON_SECRET`. Vercel attaches
-this header automatically when the env var is set.
+The route requires `Authorization: Bearer $CRON_SECRET`. It needs to be
+triggered hourly by an external scheduler (Vercel Cron is Pro-only for
+sub-daily schedules), so a **GitHub Actions** workflow drives it:
+`.github/workflows/cron-notifications.yml` (`0 * * * *`).
+
+Configure once under repo **Settings → Secrets and variables → Actions**:
+
+- Secret `CRON_SECRET` — must match the deployment's `CRON_SECRET` env var
+- Variable `APP_URL` — deployment origin, e.g. `https://grindkit.vercel.app`
+
+Use the workflow's **Run workflow** button to test on demand. Any URL-based
+scheduler works equally well (e.g. cron-job.org) — just send the bearer header.
 
 ## Deploy
 
