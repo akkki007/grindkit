@@ -17,6 +17,7 @@ export const COLLECTIONS = {
   tasks: "tasks",
   dailyLogs: "daily_logs",
   notificationsLog: "notifications_log",
+  otpVerifications: "otp_verifications",
 } as const;
 
 export type CollectionId = (typeof COLLECTIONS)[keyof typeof COLLECTIONS];

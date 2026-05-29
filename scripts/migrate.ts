@@ -11,7 +11,7 @@
  */
 
 import "dotenv/config";
-import { Client, Databases } from "node-appwrite";
+import { Client, Databases, DatabasesIndexType, Permission, Role } from "node-appwrite";
 
 const endpoint =
   process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT ?? "https://cloud.appwrite.io/v1";
@@ -27,6 +27,7 @@ if (!projectId || !apiKey) {
 }
 
 const USERS_COLLECTION = "users";
+const OTP_COLLECTION = "otp_verifications";
 
 const db = new Databases(
   new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey)
@@ -52,6 +53,31 @@ async function ensure(label: string, run: () => Promise<unknown>) {
     }
     throw err;
   }
+}
+
+async function ensureOtpCollection() {
+  try {
+    await db.getCollection(databaseId, OTP_COLLECTION);
+    console.log(`= collection "${OTP_COLLECTION}" already present`);
+    return;
+  } catch {
+    // create below
+  }
+  await db.createCollection(databaseId, OTP_COLLECTION, "OTP Verifications", [
+    Permission.create(Role.any()),
+  ], true);
+  await db.createStringAttribute(databaseId, OTP_COLLECTION, "email", 256, true);
+  await db.createStringAttribute(databaseId, OTP_COLLECTION, "otpHash", 64, true);
+  await db.createDatetimeAttribute(databaseId, OTP_COLLECTION, "expiresAt", true);
+  // Wait for attributes, then add index
+  for (let i = 0; i < 20; i++) {
+    await new Promise((r) => setTimeout(r, 1000));
+    try {
+      await db.createIndex(databaseId, OTP_COLLECTION, "email_idx", DatabasesIndexType.Key, ["email"]);
+      break;
+    } catch { /* not ready yet */ }
+  }
+  console.log(`+ collection "${OTP_COLLECTION}" created`);
 }
 
 async function main() {
@@ -85,7 +111,10 @@ async function main() {
     db.createBooleanAttribute(databaseId, USERS_COLLECTION, "emailNotifications", false)
   );
 
-  console.log("Done.");
+  console.log(`\nMigrating "${OTP_COLLECTION}" collection…`);
+  await ensureOtpCollection();
+
+  console.log("\nDone.");
 }
 
 main().catch((err) => {
