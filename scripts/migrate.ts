@@ -81,6 +81,9 @@ async function main() {
   await ensure("users.dailyGoalMinutes", () =>
     db.createIntegerAttribute(databaseId, USERS_COLLECTION, "dailyGoalMinutes", false, 0, 10000)
   );
+  await ensure("users.emailNotifications", () =>
+    db.createBooleanAttribute(databaseId, USERS_COLLECTION, "emailNotifications", false)
+  );
 
   console.log("Done.");
 }

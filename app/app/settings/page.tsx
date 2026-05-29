@@ -1,13 +1,12 @@
-import { ProfilesForm } from "@/components/settings/profiles-form";
-import { PushControls } from "@/components/notifications/push-controls";
+import { EmailControls } from "@/components/notifications/email-controls";
 import { GoalsForm } from "@/components/settings/goals-form";
 import { NotificationPrefsForm } from "@/components/settings/notification-prefs-form";
+import { ProfilesForm } from "@/components/settings/profiles-form";
 import { DeleteAccountSection } from "@/components/settings/delete-account-section";
 import { getUserProfile } from "@/actions/profile";
 
 export default async function SettingsPage() {
   const profile = await getUserProfile();
-  const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? null;
 
   return (
     <section className="px-6 py-4 space-y-10">
@@ -44,18 +43,18 @@ export default async function SettingsPage() {
       </Section>
 
       <Section
-        title="Push notifications"
-        hint="Enable web push, then pick which types below."
+        title="Email notifications"
+        hint="Streak reminders, revision nudges, and weekly recaps — straight to your inbox."
       >
-        <PushControls
-          hasSavedSubscription={profile?.hasPushSubscription ?? false}
-          vapidPublicKey={vapidPublicKey}
+        <EmailControls
+          email={profile?.email ?? ""}
+          enabled={profile?.emailNotifications ?? true}
         />
       </Section>
 
       <Section
         title="Notification types"
-        hint="Per-event toggles. Applies to both browser and push deliveries."
+        hint="Per-event toggles."
       >
         <NotificationPrefsForm
           initial={

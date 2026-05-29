@@ -47,6 +47,7 @@ export type FullProfile = {
   dailyGoalMinutes: number;
   timezone?: string;
   hasPushSubscription: boolean;
+  emailNotifications: boolean;
 };
 
 export async function getUserProfile(): Promise<FullProfile | null> {
@@ -68,6 +69,7 @@ export async function getUserProfile(): Promise<FullProfile | null> {
         dailyGoalProblems: 3,
         dailyGoalMinutes: 60,
         hasPushSubscription: false,
+        emailNotifications: true,
       };
     }
     const doc = res.documents[0] as unknown as {
@@ -78,6 +80,7 @@ export async function getUserProfile(): Promise<FullProfile | null> {
       dailyGoalProblems?: number;
       dailyGoalMinutes?: number;
       timezone?: string;
+      emailNotifications?: boolean | null;
     };
     let profiles: Profiles = {};
     if (doc.profiles) {
@@ -105,6 +108,7 @@ export async function getUserProfile(): Promise<FullProfile | null> {
       dailyGoalMinutes: doc.dailyGoalMinutes ?? 60,
       timezone: doc.timezone,
       hasPushSubscription: Boolean(doc.pushSubscription),
+      emailNotifications: doc.emailNotifications !== false,
     };
   } catch {
     return null;
